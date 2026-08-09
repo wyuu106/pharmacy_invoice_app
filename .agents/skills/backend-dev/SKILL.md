@@ -1,32 +1,37 @@
 ---
 name: backend-dev
-description: Ruby on RailsでModel、Controller、routes、DB、認証・認可などのバックエンド機能を新規実装・変更するときに使用する。
+description: Python Fast APIでmodels、schemas、cruds、routers、DB、認証・認可などのバックエンド機能を新規実装・変更するときに使用する。
 ---
 
-# Railsバックエンド開発
+# Fast APIバックエンド開発
 
 ## 基本方針
 
-このプロジェクトではRuby on Railsの標準的な設計を優先する。
+このプロジェクトではPython Fast APIの標準的な設計を優先する。
 
 過剰な抽象化や不要なライブラリ追加を避け、
-Rails標準機能で実現できる場合はそれを優先する。
+Python Fast API標準機能で実現できる場合はそれを優先する。
 
+必要ライブラリは、backend/requirements.txt にまとめる。
+実行環境は、conda環境の"devenv"を使用し、
+mac OS標準のPython環境にインストールしない。
 
 ## 作業開始前
 
 実装・変更を行う前に以下を確認する。
 
-1. 関連する要件
-2. 既存のModel
-3. 既存のController
-4. `config/routes.rb`
-5. DB schemaと関連migration
-6. 関連するテスト
-7. 認証・認可への影響
+1. 関連する要件・仕様
+2. 関連するSQLAlchemy models
+3. 関連するPydantic schemas
+4. 関連するcruds / services
+5. 関連するrouters
+6. DB schemaとAlembic migration
+7. 関連するテスト
+8. 認証・認可への影響
+9. 既存API・フロントエンドへの影響
 
-既存機能への影響範囲を確認してから実装を開始すること。
-
+既存の設計・命名規則・責務分割を優先し、
+新しい構成を独自に追加する前に既存実装を確認すること。
 
 ## Model
 
@@ -36,18 +41,16 @@ Modelは原則として以下に配置する。
 
 Modelでは主に以下を扱う。
 
-- Active RecordによるDB操作
-- association
-- validation
-- scope
-- データに関するビジネスルール
+- SQLAlchemyによるDBテーブルの定義
+- カラムの定義
+- primary key / foreign key
+- relationship
+- unique制約などのDB制約
 
 例:
 
-```ruby
-class User < ApplicationRecord
-  has_many :posts, dependent: :destroy
+```python
+from sqlalchemy import String, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-  validates :name, presence: true
-  validates :email, presence: true, uniqueness: true
-end
+from app.database import Base
