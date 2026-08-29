@@ -6,7 +6,7 @@
 
 - バックエンド: Python Fast API
 - フロントエンド: JavaScript React
-- データベース: PostgreSQL
+- データベース: SQLite
 
 実装前に既存コードを確認し、既存の設計・命名規則を優先すること。
 

@@ -1,23 +1,20 @@
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-# .envを読み込む
 load_dotenv()
 
-# osで.envの中身を環境変数として取得
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_PATH = Path(__file__).resolve().parents[1] / "test.db"
+DEFAULT_DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URLが設定されていません")
-
-# DBエンジン作成
-connect_args = (
-    {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False},
 )
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 # セッション作成
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

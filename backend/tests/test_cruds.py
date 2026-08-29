@@ -1,7 +1,4 @@
-import os
 import unittest
-
-os.environ["DATABASE_URL"] = "sqlite://"
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
