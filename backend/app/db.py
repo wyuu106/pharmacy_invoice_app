@@ -14,20 +14,20 @@ if not DATABASE_URL:
     raise RuntimeError("DATABASE_URLが設定されていません")
 
 # DBエンジン作成
-connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+connect_args = (
+    {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+)
 engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
 # セッション作成
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # モデルのベース
 Base = declarative_base()
 
-# FastAPIの依存注入用。yieldで返し、リクエスト終了時に必ずclose
+
+# FastAPIの依存注入用。
+# yieldで返し、リクエスト終了時に必ずcloseする。
 # 使い方：def endpoint(db: Session = Depends(get_db)):
 def get_db():
     db: Session = SessionLocal()  # 新しいセッション

@@ -27,7 +27,9 @@ def create_patient(db: Session, data: PatientCreate) -> Patient:
     return patient
 
 
-def update_patient(db: Session, patient: Patient, data: PatientUpdate) -> Patient:
+def update_patient(
+    db: Session, patient: Patient, data: PatientUpdate
+) -> Patient:
     for key, value in data.model_dump().items():
         setattr(patient, key, value)
     db.commit()
