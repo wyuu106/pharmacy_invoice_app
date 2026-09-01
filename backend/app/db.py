@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 load_dotenv()
@@ -32,3 +32,18 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def migrate_existing_database() -> None:
+    """create_allでは更新されない既存SQLite DBへ不足カラムを追加する。"""
+    if "invoices" not in inspect(engine).get_table_names():
+        return
+    columns = {column["name"] for column in inspect(engine).get_columns("invoices")}
+    if "store_name" not in columns:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "ALTER TABLE invoices ADD COLUMN store_name "
+                    "VARCHAR(100) NOT NULL DEFAULT ''"
+                )
+            )

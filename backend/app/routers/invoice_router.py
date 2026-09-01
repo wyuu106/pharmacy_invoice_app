@@ -14,6 +14,7 @@ from app.schemas.invoice_schema import (
     AmountResponse,
     InvoicePatientResponse,
     InvoiceResponse,
+    InvoiceUpdate,
     PatientAddRequest,
 )
 
@@ -46,6 +47,7 @@ def serialize_invoice(invoice) -> InvoiceResponse:
         id=invoice.id,
         year=invoice.year,
         month=invoice.month,
+        store_name=invoice.store_name,
         patients=patients,
         total=sum(item.subtotal for item in patients),
     )
@@ -76,6 +78,23 @@ def get_invoice(year: int, month: int, db: Session = Depends(get_db)):
     validate_period(year, month)
     return serialize_invoice(
         invoice_crud.get_or_create_invoice(db, year, month)
+    )
+
+
+@router.put("/{year}/{month}", response_model=InvoiceResponse)
+def update_invoice(
+    year: int,
+    month: int,
+    data: InvoiceUpdate,
+    db: Session = Depends(get_db),
+):
+    validate_period(year, month)
+    store_name = data.store_name.strip()
+    if not store_name:
+        raise HTTPException(status_code=422, detail="店名を入力してください")
+    invoice = invoice_crud.get_or_create_invoice(db, year, month)
+    return serialize_invoice(
+        invoice_crud.update_invoice_store_name(db, invoice, store_name)
     )
 
 

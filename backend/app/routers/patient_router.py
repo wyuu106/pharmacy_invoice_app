@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.cruds import patient_crud
@@ -46,3 +46,15 @@ def update_patient(
     return patient_crud.update_patient(
         db, require_patient(db, patient_id), data
     )
+
+
+@router.delete("/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_patient(patient_id: int, db: Session = Depends(get_db)):
+    patient = require_patient(db, patient_id)
+    if patient.invoice_patients:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="請求書で使用されている患者は削除できません",
+        )
+    patient_crud.delete_patient(db, patient)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

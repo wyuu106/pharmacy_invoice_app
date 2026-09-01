@@ -35,3 +35,8 @@ def update_patient(
     db.commit()
     db.refresh(patient)
     return patient
+
+
+def delete_patient(db: Session, patient: Patient) -> None:
+    db.delete(patient)
+    db.commit()

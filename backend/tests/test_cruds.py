@@ -6,7 +6,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.cruds import invoice_crud, patient_crud
 from app.db import Base
-from app.models import InvoiceAmount, Patient  # noqa: F401
+from app.models import Invoice, InvoiceAmount, Patient  # noqa: F401
 from app.schemas.patient_schema import PatientCreate, PatientUpdate
 
 
@@ -48,11 +48,18 @@ class CrudTestCase(unittest.TestCase):
         self.assertEqual(updated.affiliation, "青空病院")
         self.assertIsNone(updated.memo)
 
+        patient_crud.delete_patient(self.db, updated)
+        self.assertEqual(patient_crud.list_patients(self.db), [])
+
     def test_invoice_totals_and_previous_month_copy(self):
         patient = patient_crud.create_patient(
             self.db, PatientCreate(name="佐藤 花子")
         )
         april = invoice_crud.get_or_create_invoice(self.db, 2026, 4)
+        april = invoice_crud.update_invoice_store_name(
+            self.db, april, " さくら薬局 "
+        )
+        self.assertEqual(april.store_name, "さくら薬局")
         invoice_patient = invoice_crud.add_patient(self.db, april, patient)
         invoice_crud.add_amount(self.db, invoice_patient, 1200)
         invoice_crud.add_amount(self.db, invoice_patient, 800)
@@ -63,10 +70,28 @@ class CrudTestCase(unittest.TestCase):
         )
 
         may = invoice_crud.get_or_create_invoice(self.db, 2026, 5)
+        self.assertEqual(may.store_name, "さくら薬局")
         self.assertEqual(
             [item.patient_id for item in may.patients], [patient.id]
         )
         self.assertEqual(may.patients[0].amounts, [])
+
+        october_2027 = invoice_crud.get_or_create_invoice(self.db, 2027, 10)
+        self.assertEqual(october_2027.store_name, "さくら薬局")
+        self.assertEqual(
+            [item.patient_id for item in october_2027.patients], [patient.id]
+        )
+        self.assertEqual(october_2027.patients[0].amounts, [])
+
+        empty_invoice = Invoice(year=2028, month=10)
+        self.db.add(empty_invoice)
+        self.db.commit()
+        october_2028 = invoice_crud.get_or_create_invoice(self.db, 2028, 10)
+        self.assertEqual(october_2028.store_name, "さくら薬局")
+        self.assertEqual(
+            [item.patient_id for item in october_2028.patients], [patient.id]
+        )
+        self.assertEqual(october_2028.patients[0].amounts, [])
 
 
 if __name__ == "__main__":

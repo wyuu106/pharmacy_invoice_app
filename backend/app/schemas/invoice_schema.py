@@ -24,8 +24,13 @@ class InvoiceResponse(BaseModel):
     id: int
     year: int
     month: int
+    store_name: str
     patients: list[InvoicePatientResponse]
     total: int
+
+
+class InvoiceUpdate(BaseModel):
+    store_name: str = Field(min_length=1, max_length=100)
 
 
 class PatientAddRequest(BaseModel):

@@ -2,12 +2,13 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.db import Base, engine
+from app.db import Base, engine, migrate_existing_database
 from app.models import invoice_model, patient_model  # noqa: F401
 from app.routers.invoice_router import router as invoice_router
 from app.routers.patient_router import router as patient_router
 
 Base.metadata.create_all(bind=engine)
+migrate_existing_database()
 
 app = FastAPI()
 
