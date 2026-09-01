@@ -1,3 +1,8 @@
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$NpmCommandPath
+)
+
 $ErrorActionPreference = "Stop"
 
 $ScriptDir = $PSScriptRoot
@@ -60,15 +65,14 @@ try {
         New-Item -ItemType File -Force -Path $BackendReadyFile | Out-Null
     }
 
-    $NodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
-    $NpmCommand = Get-Command npm.cmd -ErrorAction SilentlyContinue
-    if (-not $NodeCommand) { throw "Node.jsが見つかりません。Node.jsをインストールしてください。" }
-    if (-not $NpmCommand) { throw "npmが見つかりません。Node.jsをインストールしてください。" }
+    if (-not (Test-Path $NpmCommandPath -PathType Leaf)) {
+        throw "npm.cmdが見つかりません。Node.jsをインストールしてください。"
+    }
 
     if (-not (Test-Path $ViteScript)) {
         Write-Host "初回準備: フロントエンドの依存関係をインストールしています..."
         Push-Location $FrontendDir
-        try { & $NpmCommand.Source install }
+        try { & $NpmCommandPath install }
         finally { Pop-Location }
         if ($LASTEXITCODE -ne 0) { throw "フロントエンドの依存関係をインストールできませんでした。" }
     }
@@ -85,8 +89,8 @@ try {
 
     if (-not (Test-RecordedProcess $FrontendPidFile)) {
         Remove-Item $FrontendPidFile -Force -ErrorAction SilentlyContinue
-        $FrontendProcess = Start-Process -FilePath $NodeCommand.Source `
-            -ArgumentList @($ViteScript) -WorkingDirectory $FrontendDir `
+        $FrontendProcess = Start-Process -FilePath $NpmCommandPath `
+            -ArgumentList @("run", "dev") -WorkingDirectory $FrontendDir `
             -WindowStyle Hidden -PassThru `
             -RedirectStandardOutput (Join-Path $LogDir "frontend.log") `
             -RedirectStandardError (Join-Path $LogDir "frontend-error.log")

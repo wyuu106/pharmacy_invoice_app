@@ -129,6 +129,7 @@ macOSでは`scripts/start-app.command`、Windowsでは`scripts/start-app.bat`を
 バックエンドとフロントエンドを起動して請求書作成画面をブラウザで開く。
 停止時は、それぞれ`scripts/stop-app.command`または`scripts/stop-app.bat`を使用する。
 macOSのバックエンドはconda環境`devenv`で実行する。
+Windowsのフロントエンドは、PowerShellの実行ポリシーに影響されないよう`npm.cmd`で起動する。
 
 ### 5.2 エラー表示
 

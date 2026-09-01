@@ -14,7 +14,7 @@ function Stop-RecordedProcess {
     if ($RecordedPid -match '^\d+$') {
         $Process = Get-Process -Id ([int]$RecordedPid) -ErrorAction SilentlyContinue
         if ($Process) {
-            Stop-Process -Id $Process.Id -Force
+            & taskkill.exe /PID $Process.Id /T /F | Out-Null
             Write-Host "$Nameを停止しました。"
         }
         else {
