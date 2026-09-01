@@ -95,7 +95,7 @@ export default function PatientsPage() {
                   {patient.affiliation || "未設定"}
                 </p>
                 <p className="memo">
-                  <strong>メモ：</strong>
+                  <strong>備考：</strong>
                   {patient.memo || "なし"}
                 </p>
               </div>

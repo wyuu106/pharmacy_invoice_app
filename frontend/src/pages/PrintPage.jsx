@@ -72,6 +72,7 @@ export default function PrintPage() {
                 {year}年 {month}月分 調剤日請求書
               </h1>
               <div className="print-summary">
+                <span className="print-pharmacy-name">○○薬局</span>
                 <span>合計：{formatYen(invoice?.total || 0)}</span>
                 {pages.length > 1 && (
                   <small>

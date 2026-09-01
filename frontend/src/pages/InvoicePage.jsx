@@ -4,7 +4,6 @@ import Message from "../components/Message";
 import { api } from "../utils/api";
 
 const today = new Date();
-const formatYen = (value) => `${Number(value).toLocaleString("ja-JP")}円`;
 
 export default function InvoicePage() {
   const navigate = useNavigate();
@@ -17,6 +16,17 @@ export default function InvoicePage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!showCandidates) return undefined;
+
+    function closeOnEscape(event) {
+      if (event.key === "Escape") setShowCandidates(false);
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [showCandidates]);
 
   const loadInvoice = useCallback(async () => {
     setLoading(true);
@@ -113,11 +123,32 @@ export default function InvoicePage() {
     }
 
     try {
-      await api(`/invoices/amounts/${amountId}`, {
+      const saved = await api(`/invoices/amounts/${amountId}`, {
         method: "PUT",
         body: JSON.stringify({ amount }),
       });
-      await loadInvoice();
+      setInvoice((current) => {
+        if (!current) return current;
+
+        const patients = current.patients.map((item) => {
+          if (!item.amounts.some((entry) => entry.id === amountId)) return item;
+          const amounts = item.amounts.map((entry) =>
+            entry.id === amountId ? saved : entry,
+          );
+          return {
+            ...item,
+            amounts,
+            subtotal: amounts.reduce((sum, entry) => sum + entry.amount, 0),
+          };
+        });
+
+        return {
+          ...current,
+          patients,
+          total: patients.reduce((sum, item) => sum + item.subtotal, 0),
+        };
+      });
+      setError("");
     } catch (err) {
       setError(err.message);
     }
@@ -173,10 +204,7 @@ export default function InvoicePage() {
         {invoice.patients.map((item) => (
           <article className="invoice-card" key={item.id}>
             <div className="invoice-patient">
-              <div>
-                <h2>{item.patient.name}</h2>
-                <p>{item.patient.affiliation || "所属なし"}</p>
-              </div>
+              <h2>{item.patient.name}</h2>
               <button
                 className="text-danger"
                 onClick={() => removePatient(item)}
@@ -201,6 +229,11 @@ export default function InvoicePage() {
                         onBlur={(event) =>
                           saveAmount(amount.id, event.target.value)
                         }
+                        onKeyDown={(event) => {
+                          if (event.key !== "Enter") return;
+                          event.preventDefault();
+                          event.currentTarget.blur();
+                        }}
                       />
                       <span>円</span>
                     </span>
@@ -218,10 +251,6 @@ export default function InvoicePage() {
                 ＋ 金額欄を追加
               </button>
             </div>
-            <div className="subtotal">
-              <span>{item.patient.name}さんの合計</span>
-              <strong>{formatYen(item.subtotal)}</strong>
-            </div>
           </article>
         ))}
       </div>
@@ -232,12 +261,11 @@ export default function InvoicePage() {
     <>
       <header className="page-header">
         <h1>請求書作成</h1>
-        <p>患者ごとの金額を入力してください</p>
       </header>
       <section className="period-card">
         <label>
-          請求する年
           <select
+            aria-label="請求する年"
             value={year}
             onChange={(event) => changeYear(event.target.value)}
           >
@@ -251,8 +279,8 @@ export default function InvoicePage() {
         </label>
         <span className="period-unit">年</span>
         <label>
-          請求する月
           <select
+            aria-label="請求する月"
             value={month}
             onChange={(event) => changeMonth(event.target.value)}
           >
@@ -274,63 +302,75 @@ export default function InvoicePage() {
             {invoice?.patients.length || 0}人
           </span>
         </h2>
-        <button className="primary" onClick={() => searchCandidates()}>
-          ＋ 患者を追加
-        </button>
       </div>
       {showCandidates && (
-        <section className="candidate-panel">
-          <div className="row-between">
-            <h2>追加する患者を選ぶ</h2>
-            <button
-              className="text-button"
-              onClick={() => setShowCandidates(false)}
-            >
-              閉じる
-            </button>
-          </div>
-          <form
-            className="search-bar"
-            onSubmit={(event) => {
-              event.preventDefault();
-              searchCandidates(query);
-            }}
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowCandidates(false);
+          }}
+        >
+          <section
+            aria-labelledby="candidate-dialog-title"
+            aria-modal="true"
+            className="candidate-panel"
+            role="dialog"
           >
-            <input
-              autoFocus
-              placeholder="氏名・所属で検索"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-            <button className="secondary">検索</button>
-          </form>
-          {candidates.length === 0 ? (
-            <p>追加できる患者はいません</p>
-          ) : (
-            <div className="candidate-list">
-              {candidates.map((patient) => (
-                <button key={patient.id} onClick={() => addPatient(patient.id)}>
-                  <strong>{patient.name}</strong>
-                  <span>{patient.affiliation || "所属なし"}</span>
-                  <span className="add-label">追加</span>
-                </button>
-              ))}
+            <div className="row-between">
+              <h2 id="candidate-dialog-title">追加する患者を選ぶ</h2>
+              <button
+                className="text-button"
+                onClick={() => setShowCandidates(false)}
+              >
+                閉じる
+              </button>
             </div>
-          )}
-        </section>
+            <form
+              className="search-bar"
+              onSubmit={(event) => {
+                event.preventDefault();
+                searchCandidates(query);
+              }}
+            >
+              <input
+                autoFocus
+                placeholder="氏名で検索"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+              <button className="secondary">検索</button>
+            </form>
+            {candidates.length === 0 ? (
+              <p>追加できる患者はいません</p>
+            ) : (
+              <div className="candidate-list">
+                {candidates.map((patient) => (
+                  <button
+                    key={patient.id}
+                    onClick={() => addPatient(patient.id)}
+                  >
+                    <strong>{patient.name}</strong>
+                    <span className="add-label">追加</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       )}
       {renderInvoiceList()}
-      <section className="grand-total">
-        <span>全患者の合計金額</span>
-        <strong>{formatYen(invoice?.total || 0)}</strong>
-      </section>
-      <button
-        className="print-fab"
-        disabled={loading || !invoice}
-        onClick={() => navigate(`/print?year=${year}&month=${month}`)}
-      >
-        印刷
-      </button>
+      <div className="invoice-actions">
+        <button className="add-patient-fab" onClick={() => searchCandidates()}>
+          ＋ 患者を追加
+        </button>
+        <button
+          className="print-fab"
+          disabled={loading || !invoice}
+          onClick={() => navigate(`/print?year=${year}&month=${month}`)}
+        >
+          印刷
+        </button>
+      </div>
     </>
   );
 }

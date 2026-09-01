@@ -41,13 +41,11 @@ export default function PatientFormPage() {
     setSaving(true);
     setError("");
     try {
-      const saved = await api(editing ? `/patients/${id}` : "/patients", {
+      await api(editing ? `/patients/${id}` : "/patients", {
         method: editing ? "PUT" : "POST",
         body: JSON.stringify(form),
       });
-      navigate(editing ? "/patients" : `/patient/${saved.id}/edit`, {
-        replace: true,
-      });
+      navigate("/patients", { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -85,11 +83,10 @@ export default function PatientFormPage() {
             value={form.affiliation}
             onChange={(e) => update("affiliation", e.target.value)}
             maxLength="200"
-            placeholder="例：○○薬局"
           />
         </label>
         <label>
-          メモ
+          備考
           <textarea
             value={form.memo}
             onChange={(e) => update("memo", e.target.value)}

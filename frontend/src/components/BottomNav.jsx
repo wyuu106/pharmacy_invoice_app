@@ -1,8 +1,17 @@
 import { NavLink } from "react-router-dom";
 
+function PatientIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="7" r="4" />
+      <path d="M4 21a8 8 0 0 1 16 0Z" />
+    </svg>
+  );
+}
+
 const items = [
   { to: "/invoice", icon: "￥", label: "請求書" },
-  { to: "/patients", icon: "人", label: "患者" },
+  { to: "/patients", icon: <PatientIcon />, label: "患者" },
   { to: "/others", icon: "…", label: "その他" },
 ];
 
