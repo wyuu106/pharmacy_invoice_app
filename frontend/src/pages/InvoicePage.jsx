@@ -72,6 +72,26 @@ export default function InvoicePage() {
     }
   }
 
+  async function saveStoreName(rawValue) {
+    const storeName = rawValue.trim();
+    if (!storeName) {
+      setError("店名を入力してください");
+      return;
+    }
+
+    const invoiceId = invoice?.id;
+    setError("");
+    try {
+      const data = await api(`/invoices/${year}/${month}`, {
+        method: "PUT",
+        body: JSON.stringify({ store_name: storeName }),
+      });
+      setInvoice((current) => (current?.id === invoiceId ? data : current));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   async function addPatient(patientId) {
     try {
       const data = await api(`/invoices/${year}/${month}/patients`, {
@@ -292,6 +312,32 @@ export default function InvoicePage() {
           </select>
         </label>
         <span className="period-unit">月分</span>
+        <div className="store-name-field">
+          <label htmlFor="store-name">店名</label>
+          <input
+            disabled={loading || !invoice}
+            id="store-name"
+            maxLength="100"
+            placeholder="例：さくら薬局"
+            value={invoice?.store_name || ""}
+            onBlur={(event) => saveStoreName(event.target.value)}
+            onChange={(event) =>
+              setInvoice((current) =>
+                current
+                  ? { ...current, store_name: event.target.value }
+                  : current,
+              )
+            }
+            onKeyDown={(event) => {
+              if (event.key !== "Enter") return;
+              if (event.nativeEvent.isComposing || event.keyCode === 229) {
+                return;
+              }
+              event.preventDefault();
+              event.currentTarget.blur();
+            }}
+          />
+        </div>
       </section>
       <Message>{error}</Message>
       <Message type="success">{notice}</Message>

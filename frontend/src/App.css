@@ -286,6 +286,22 @@ select {
   font-size: 20px;
   font-weight: 700;
 }
+.store-name-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin-left: auto;
+}
+.period-card .store-name-field label {
+  width: auto;
+  white-space: nowrap;
+  font-size: 20px;
+}
+.store-name-field input {
+  width: min(330px, 30vw);
+  margin-top: 0;
+}
 .invoice-toolbar {
   margin: 26px 0 16px;
 }
@@ -427,8 +443,8 @@ select {
   gap: 12px;
 }
 .print-sheet {
-  width: 297mm;
-  height: 210mm;
+  width: 210mm;
+  height: 297mm;
   margin: 0 auto 24px;
   padding: 18mm 20mm;
   overflow: hidden;
@@ -515,10 +531,20 @@ select {
   .row-between {
     align-items: flex-start;
   }
+  .period-card {
+    flex-wrap: wrap;
+  }
+  .store-name-field {
+    width: 100%;
+    margin-left: 0;
+  }
+  .store-name-field input {
+    width: 100%;
+  }
 }
 
 @page {
-  size: A4 landscape;
+  size: A4 portrait;
   margin: 0;
 }
 @media print {

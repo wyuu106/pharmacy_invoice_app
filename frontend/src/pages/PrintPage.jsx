@@ -69,10 +69,12 @@ export default function PrintPage() {
           <section className="print-sheet" key={pageIndex}>
             <header className="print-header">
               <h1>
-                {year}年 {month}月分 調剤日請求書
+                {year}年 {month}月分 調剤費請求書
               </h1>
               <div className="print-summary">
-                <span className="print-pharmacy-name">○○薬局</span>
+                <span className="print-pharmacy-name">
+                  {invoice?.store_name || "（店名未設定）"}
+                </span>
                 <span>合計：{formatYen(invoice?.total || 0)}</span>
                 {pages.length > 1 && (
                   <small>

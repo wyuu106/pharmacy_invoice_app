@@ -53,6 +53,24 @@ export default function PatientFormPage() {
     }
   }
 
+  async function deletePatient() {
+    const confirmed = window.confirm(
+      `${form.name}さんの情報を削除しますか？この操作は取り消せません。`,
+    );
+    if (!confirmed) return;
+
+    setSaving(true);
+    setError("");
+    try {
+      await api(`/patients/${id}`, { method: "DELETE" });
+      navigate("/patients", { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (loading) return <p className="loading">読み込み中…</p>;
   return (
     <>
@@ -95,6 +113,16 @@ export default function PatientFormPage() {
           />
         </label>
         <div className="form-actions">
+          {editing && (
+            <button
+              className="danger"
+              disabled={saving}
+              onClick={deletePatient}
+              type="button"
+            >
+              患者を削除
+            </button>
+          )}
           <Link className="button secondary" to="/patients">
             戻る
           </Link>
