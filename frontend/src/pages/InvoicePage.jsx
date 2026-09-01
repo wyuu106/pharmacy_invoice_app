@@ -318,7 +318,6 @@ export default function InvoicePage() {
             disabled={loading || !invoice}
             id="store-name"
             maxLength="100"
-            placeholder="例：さくら薬局"
             value={invoice?.store_name || ""}
             onBlur={(event) => saveStoreName(event.target.value)}
             onChange={(event) =>
