@@ -112,6 +112,11 @@ def add_patient(
             status_code=404,
             detail="患者が見つかりません",
         )
+    if not patient.is_active:
+        raise HTTPException(
+            status_code=400,
+            detail="非表示の患者は請求書に追加できません",
+        )
     invoice = invoice_crud.get_or_create_invoice(db, year, month)
     try:
         invoice_crud.add_patient(db, invoice, patient)

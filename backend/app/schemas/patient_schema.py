@@ -33,9 +33,14 @@ class PatientUpdate(PatientBase):
     pass
 
 
+class PatientVisibilityUpdate(BaseModel):
+    is_active: bool
+
+
 class PatientResponse(PatientBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    is_active: bool
     created_at: datetime
     updated_at: datetime

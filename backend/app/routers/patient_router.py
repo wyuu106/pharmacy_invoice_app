@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.cruds import patient_crud
@@ -7,6 +7,7 @@ from app.schemas.patient_schema import (
     PatientCreate,
     PatientResponse,
     PatientUpdate,
+    PatientVisibilityUpdate,
 )
 
 router = APIRouter(prefix="/patients", tags=["患者"])
@@ -23,8 +24,12 @@ def require_patient(db: Session, patient_id: int):
 
 
 @router.get("", response_model=list[PatientResponse])
-def list_patients(query: str | None = None, db: Session = Depends(get_db)):
-    return patient_crud.list_patients(db, query)
+def list_patients(
+    query: str | None = None,
+    is_active: bool = True,
+    db: Session = Depends(get_db),
+):
+    return patient_crud.list_patients(db, query, is_active)
 
 
 @router.post(
@@ -48,13 +53,12 @@ def update_patient(
     )
 
 
-@router.delete("/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_patient(patient_id: int, db: Session = Depends(get_db)):
-    patient = require_patient(db, patient_id)
-    if patient.invoice_patients:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="請求書で使用されている患者は削除できません",
-        )
-    patient_crud.delete_patient(db, patient)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{patient_id}/visibility", response_model=PatientResponse)
+def update_patient_visibility(
+    patient_id: int,
+    data: PatientVisibilityUpdate,
+    db: Session = Depends(get_db),
+):
+    return patient_crud.update_patient_visibility(
+        db, require_patient(db, patient_id), data.is_active
+    )

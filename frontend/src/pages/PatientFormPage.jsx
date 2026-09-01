@@ -13,17 +13,19 @@ export default function PatientFormPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(editing);
   const [saving, setSaving] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     if (!editing) return;
     api(`/patients/${id}`)
-      .then((data) =>
+      .then((data) => {
         setForm({
           name: data.name,
           affiliation: data.affiliation || "",
           memo: data.memo || "",
-        }),
-      )
+        });
+        setIsActive(data.is_active);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [editing, id]);
@@ -53,16 +55,16 @@ export default function PatientFormPage() {
     }
   }
 
-  async function deletePatient() {
-    const confirmed = window.confirm(
-      `${form.name}さんの情報を削除しますか？この操作は取り消せません。`,
-    );
-    if (!confirmed) return;
+  async function toggleVisibility() {
+    if (isActive && !window.confirm("本当に非表示にしますか？")) return;
 
     setSaving(true);
     setError("");
     try {
-      await api(`/patients/${id}`, { method: "DELETE" });
+      await api(`/patients/${id}/visibility`, {
+        method: "PUT",
+        body: JSON.stringify({ is_active: !isActive }),
+      });
       navigate("/patients", { replace: true });
     } catch (err) {
       setError(err.message);
@@ -115,12 +117,12 @@ export default function PatientFormPage() {
         <div className="form-actions">
           {editing && (
             <button
-              className="danger"
+              className={isActive ? "danger" : "primary"}
               disabled={saving}
-              onClick={deletePatient}
+              onClick={toggleVisibility}
               type="button"
             >
-              患者を削除
+              {isActive ? "非表示にする" : "表示に戻す"}
             </button>
           )}
           <Link className="button secondary" to="/patients">

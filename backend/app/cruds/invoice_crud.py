@@ -38,6 +38,8 @@ def _get_latest_initialized_invoice(
 def _copy_invoice_defaults(invoice: Invoice, previous: Invoice) -> None:
     invoice.store_name = previous.store_name
     for previous_patient in previous.patients:
+        if not previous_patient.patient.is_active:
+            continue
         invoice.patients.append(
             InvoicePatient(patient_id=previous_patient.patient_id)
         )

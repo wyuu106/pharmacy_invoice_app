@@ -3,21 +3,24 @@ import { Link } from "react-router-dom";
 import Message from "../components/Message";
 import { api } from "../utils/api";
 
+function patientsPath(search, isActive) {
+  const params = new URLSearchParams({ is_active: String(isActive) });
+  if (search) params.set("query", search);
+  return `/patients?${params.toString()}`;
+}
+
 export default function PatientsPage() {
   const [patients, setPatients] = useState([]);
   const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showActive, setShowActive] = useState(true);
 
-  async function load(search = "") {
+  async function load(search = "", isActive = showActive) {
     setLoading(true);
     setError("");
     try {
-      setPatients(
-        await api(
-          `/patients${search ? `?query=${encodeURIComponent(search)}` : ""}`,
-        ),
-      );
+      setPatients(await api(patientsPath(search, isActive)));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -27,7 +30,7 @@ export default function PatientsPage() {
 
   useEffect(() => {
     let active = true;
-    api("/patients")
+    api(patientsPath("", true))
       .then((data) => {
         if (active) setPatients(data);
       })
@@ -45,8 +48,32 @@ export default function PatientsPage() {
   return (
     <>
       <header className="page-header row-between">
-        <div>
+        <div className="patient-heading">
           <h1>患者一覧</h1>
+          <div className="visibility-toggle" aria-label="患者の表示切り替え">
+            <button
+              aria-pressed={showActive}
+              className={showActive ? "active" : ""}
+              onClick={() => {
+                setShowActive(true);
+                load(query, true);
+              }}
+              type="button"
+            >
+              表示
+            </button>
+            <button
+              aria-pressed={!showActive}
+              className={!showActive ? "active" : ""}
+              onClick={() => {
+                setShowActive(false);
+                load(query, false);
+              }}
+              type="button"
+            >
+              非表示
+            </button>
+          </div>
         </div>
         <Link className="button primary" to="/patient/register">
           ＋ 新しい患者を登録
@@ -83,7 +110,9 @@ export default function PatientsPage() {
       {loading ? (
         <p className="loading">読み込み中…</p>
       ) : patients.length === 0 ? (
-        <div className="empty-state">該当する患者はいません</div>
+        <div className="empty-state">
+          {showActive ? "該当する患者はいません" : "非表示の患者はいません"}
+        </div>
       ) : (
         <div className="patient-list">
           {patients.map((patient) => (

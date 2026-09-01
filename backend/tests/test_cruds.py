@@ -48,8 +48,19 @@ class CrudTestCase(unittest.TestCase):
         self.assertEqual(updated.affiliation, "青空病院")
         self.assertIsNone(updated.memo)
 
-        patient_crud.delete_patient(self.db, updated)
+        patient_crud.update_patient_visibility(self.db, updated, False)
         self.assertEqual(patient_crud.list_patients(self.db), [])
+        self.assertEqual(
+            [patient.id for patient in patient_crud.list_patients(
+                self.db, is_active=False
+            )],
+            [updated.id],
+        )
+        patient_crud.update_patient_visibility(self.db, updated, True)
+        self.assertEqual(
+            [patient.id for patient in patient_crud.list_patients(self.db)],
+            [updated.id],
+        )
 
     def test_invoice_totals_and_previous_month_copy(self):
         patient = patient_crud.create_patient(
@@ -63,11 +74,22 @@ class CrudTestCase(unittest.TestCase):
         invoice_patient = invoice_crud.add_patient(self.db, april, patient)
         invoice_crud.add_amount(self.db, invoice_patient, 1200)
         invoice_crud.add_amount(self.db, invoice_patient, 800)
+        hidden_patient = patient_crud.create_patient(
+            self.db, PatientCreate(name="非表示患者")
+        )
+        hidden_invoice_patient = invoice_crud.add_patient(
+            self.db, april, hidden_patient
+        )
+        invoice_crud.add_amount(self.db, hidden_invoice_patient, 500)
+        patient_crud.update_patient_visibility(
+            self.db, hidden_patient, False
+        )
 
         april = invoice_crud.get_invoice(self.db, 2026, 4)
         self.assertEqual(
             sum(item.amount for item in april.patients[0].amounts), 2000
         )
+        self.assertEqual(len(april.patients), 2)
 
         may = invoice_crud.get_or_create_invoice(self.db, 2026, 5)
         self.assertEqual(may.store_name, "さくら薬局")

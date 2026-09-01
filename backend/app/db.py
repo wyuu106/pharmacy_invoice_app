@@ -36,14 +36,31 @@ def get_db():
 
 def migrate_existing_database() -> None:
     """create_allでは更新されない既存SQLite DBへ不足カラムを追加する。"""
-    if "invoices" not in inspect(engine).get_table_names():
-        return
-    columns = {column["name"] for column in inspect(engine).get_columns("invoices")}
-    if "store_name" not in columns:
+    inspector = inspect(engine)
+    table_names = inspector.get_table_names()
+    invoice_columns = (
+        {column["name"] for column in inspector.get_columns("invoices")}
+        if "invoices" in table_names
+        else set()
+    )
+    patient_columns = (
+        {column["name"] for column in inspector.get_columns("patients")}
+        if "patients" in table_names
+        else set()
+    )
+    if "store_name" not in invoice_columns and "invoices" in table_names:
         with engine.begin() as connection:
             connection.execute(
                 text(
                     "ALTER TABLE invoices ADD COLUMN store_name "
                     "VARCHAR(100) NOT NULL DEFAULT ''"
+                )
+            )
+    if "is_active" not in patient_columns and "patients" in table_names:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "ALTER TABLE patients ADD COLUMN is_active "
+                    "BOOLEAN NOT NULL DEFAULT 1"
                 )
             )
