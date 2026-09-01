@@ -125,6 +125,11 @@
 本アプリは、デプロイは行わず、ローカルホストによる起動のみで利用するものとする。
 よって、ログイン機能は必要ない。
 
+macOSでは`scripts/start-app.command`、Windowsでは`scripts/start-app.bat`をダブルクリックすると、
+バックエンドとフロントエンドを起動して請求書作成画面をブラウザで開く。
+停止時は、それぞれ`scripts/stop-app.command`または`scripts/stop-app.bat`を使用する。
+macOSのバックエンドはconda環境`devenv`で実行する。
+
 ### 5.2 エラー表示
 
 入力エラーが発生した場合、
