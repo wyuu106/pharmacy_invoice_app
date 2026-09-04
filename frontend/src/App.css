@@ -362,6 +362,7 @@ select {
 .candidate-list button {
   display: grid;
   grid-template-columns: 1fr auto;
+  align-items: center;
   text-align: left;
   background: #f4f8fd;
   border: 1px solid var(--border);
@@ -369,6 +370,15 @@ select {
 }
 .candidate-list button:hover {
   background: var(--blue-light);
+}
+.candidate-person {
+  display: grid;
+  gap: 3px;
+}
+.candidate-person small {
+  color: #60738c;
+  font-size: 13px;
+  font-weight: 500;
 }
 .add-label {
   color: var(--blue-dark);

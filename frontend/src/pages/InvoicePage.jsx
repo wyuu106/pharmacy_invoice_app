@@ -394,7 +394,12 @@ export default function InvoicePage() {
                     key={patient.id}
                     onClick={() => addPatient(patient.id)}
                   >
-                    <strong>{patient.name}</strong>
+                    <span className="candidate-person">
+                      <strong>{patient.name}</strong>
+                      <small>
+                        {patient.affiliation || "所属未設定"}
+                      </small>
+                    </span>
                     <span className="add-label">追加</span>
                   </button>
                 ))}
