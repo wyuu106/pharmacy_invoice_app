@@ -82,7 +82,7 @@ export default function InvoicePage() {
     const invoiceId = invoice?.id;
     setError("");
     try {
-      const data = await api(`/invoices/${year}/${month}`, {
+      const data = await api(`/invoices/${year}/${month}/store-name`, {
         method: "PUT",
         body: JSON.stringify({ store_name: storeName }),
       });

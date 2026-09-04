@@ -81,7 +81,7 @@ def get_invoice(year: int, month: int, db: Session = Depends(get_db)):
     )
 
 
-@router.put("/{year}/{month}", response_model=InvoiceResponse)
+@router.put("/{year}/{month}/store-name", response_model=InvoiceResponse)
 def update_invoice(
     year: int,
     month: int,
