@@ -506,7 +506,7 @@ select {
   width: 210mm;
   height: 297mm;
   margin: 0 auto 24px;
-  padding: 18mm 20mm;
+  padding: 10mm 12mm;
   overflow: hidden;
   color: #111;
   background: white;
@@ -548,9 +548,11 @@ select {
 .print-table {
   min-height: 138mm;
   display: grid;
-  grid-template-columns: 31% 69%;
+  grid-template-columns: 36% 64%;
+  align-content: start;
 }
-.print-patient-column {
+.print-patient-column,
+.print-patient-name {
   border-right: 1.5px solid #111;
 }
 .print-table h2 {
@@ -569,15 +571,16 @@ select {
   line-height: 1.35;
 }
 .print-patient-name {
-  gap: 3mm;
-  padding: 1.5mm 8mm 1.5mm 2mm;
+  gap: 1.5mm;
+  padding: 1.5mm 3mm 1.5mm 0;
 }
 .print-patient-number {
-  width: 10mm;
+  width: 7mm;
   text-align: right;
   flex-shrink: 0;
 }
 .print-patient-name strong {
+  min-width: 0;
   font-weight: 400;
   overflow-wrap: anywhere;
 }

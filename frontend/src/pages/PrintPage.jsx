@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Message from "../components/Message";
 import { api } from "../utils/api";
@@ -84,26 +84,22 @@ export default function PrintPage() {
               </div>
             </header>
             <div className="print-table">
-              <div className="print-patient-column">
-                <h2>患者名</h2>
-                {patients.map((item, index) => (
-                  <div className="print-patient-name" key={item.id}>
+              <h2 className="print-patient-column">患者名</h2>
+              <h2>請求金額</h2>
+              {patients.map((item, index) => (
+                <Fragment key={item.id}>
+                  <div className="print-patient-name">
                     <span className="print-patient-number">
                       {pageIndex * PATIENTS_PER_PAGE + index + 1}.
                     </span>
                     <strong>{item.patient.name}</strong>
                     <span className="print-honorific">様</span>
                   </div>
-                ))}
-              </div>
-              <div className="print-amount-column">
-                <h2>請求金額</h2>
-                {patients.map((item) => (
-                  <div className="print-amount" key={item.id}>
+                  <div className="print-amount">
                     {amountExpression(item)}
                   </div>
-                ))}
-              </div>
+                </Fragment>
+              ))}
             </div>
           </section>
         ))
