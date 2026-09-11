@@ -88,8 +88,11 @@ export default function PrintPage() {
                 <h2>患者名</h2>
                 {patients.map((item, index) => (
                   <div className="print-patient-name" key={item.id}>
-                    <span>{pageIndex * PATIENTS_PER_PAGE + index + 1}.</span>
+                    <span className="print-patient-number">
+                      {pageIndex * PATIENTS_PER_PAGE + index + 1}.
+                    </span>
                     <strong>{item.patient.name}</strong>
+                    <span className="print-honorific">様</span>
                   </div>
                 ))}
               </div>

@@ -16,6 +16,8 @@ export default function InvoicePage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
+  const [invoiceSearch, setInvoiceSearch] = useState("");
+  const [appliedInvoiceSearch, setAppliedInvoiceSearch] = useState("");
 
   useEffect(() => {
     if (!showCandidates) return undefined;
@@ -125,11 +127,27 @@ export default function InvoicePage() {
 
   async function addAmount(itemId) {
     try {
-      await api(`/invoices/patients/${itemId}/amounts`, {
+      const added = await api(`/invoices/patients/${itemId}/amounts`, {
         method: "POST",
         body: JSON.stringify({ amount: 0 }),
       });
-      await loadInvoice();
+      setInvoice((current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          patients: current.patients.map((item) =>
+            item.id === itemId
+              ? {
+                  ...item,
+                  amounts: [...item.amounts, added],
+                  subtotal: item.subtotal + added.amount,
+                }
+              : item,
+          ),
+          total: current.total + added.amount,
+        };
+      });
+      setError("");
     } catch (err) {
       setError(err.message);
     }
@@ -187,11 +205,15 @@ export default function InvoicePage() {
 
   function changeYear(value) {
     setLoading(true);
+    setInvoiceSearch("");
+    setAppliedInvoiceSearch("");
     setYear(Number(value));
   }
 
   function changeMonth(value) {
     setLoading(true);
+    setInvoiceSearch("");
+    setAppliedInvoiceSearch("");
     setMonth(Number(value));
   }
 
@@ -219,9 +241,20 @@ export default function InvoicePage() {
       );
     }
 
+    const keyword = appliedInvoiceSearch.trim().toLocaleLowerCase("ja-JP");
+    const filteredPatients = keyword
+      ? invoice.patients.filter((item) =>
+          item.patient.name.toLocaleLowerCase("ja-JP").includes(keyword),
+        )
+      : invoice.patients;
+
+    if (filteredPatients.length === 0) {
+      return <div className="empty-state">該当する患者はいません</div>;
+    }
+
     return (
       <div className="invoice-list">
-        {invoice.patients.map((item) => (
+        {filteredPatients.map((item) => (
           <article className="invoice-card" key={item.id}>
             <div className="invoice-patient">
               <h2>{item.patient.name}</h2>
@@ -347,6 +380,33 @@ export default function InvoicePage() {
             {invoice?.patients.length || 0}人
           </span>
         </h2>
+        <form
+          className="invoice-search-bar"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setAppliedInvoiceSearch(invoiceSearch.trim());
+          }}
+        >
+          <input
+            aria-label="請求する患者を検索"
+            placeholder="患者名で検索"
+            value={invoiceSearch}
+            onChange={(event) => setInvoiceSearch(event.target.value)}
+          />
+          <button className="secondary">検索</button>
+          {(invoiceSearch || appliedInvoiceSearch) && (
+            <button
+              className="text-button"
+              onClick={() => {
+                setInvoiceSearch("");
+                setAppliedInvoiceSearch("");
+              }}
+              type="button"
+            >
+              クリア
+            </button>
+          )}
+        </form>
       </div>
       {showCandidates && (
         <div
