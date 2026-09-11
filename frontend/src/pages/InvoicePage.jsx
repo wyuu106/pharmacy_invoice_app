@@ -197,7 +197,26 @@ export default function InvoicePage() {
       await api(`/invoices/amounts/${amountId}`, {
         method: "DELETE",
       });
-      await loadInvoice();
+      setInvoice((current) => {
+        if (!current) return current;
+        const patients = current.patients.map((item) => {
+          if (!item.amounts.some((entry) => entry.id === amountId)) return item;
+          const amounts = item.amounts.filter(
+            (entry) => entry.id !== amountId,
+          );
+          return {
+            ...item,
+            amounts,
+            subtotal: amounts.reduce((sum, entry) => sum + entry.amount, 0),
+          };
+        });
+        return {
+          ...current,
+          patients,
+          total: patients.reduce((sum, item) => sum + item.subtotal, 0),
+        };
+      });
+      setError("");
     } catch (err) {
       setError(err.message);
     }

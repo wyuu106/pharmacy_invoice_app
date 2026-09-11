@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Message from "../components/Message";
 import { api } from "../utils/api";
 
-const PATIENTS_PER_PAGE = 10;
+const PATIENTS_PER_PAGE = 18;
 const formatYen = (value) => `${Number(value).toLocaleString("ja-JP")}円`;
 
 function splitIntoPages(items) {
